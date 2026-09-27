@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Panel hídrico | AgroVic{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <div><p class="eyebrow">Operación en tiempo real</p><h1>Panel hídrico</h1><p>Estado del piloto y decisiones de fuente con protección local.</p></div>
+  <span class="live-pill"><i></i>Sistema disponible</span>
+</header>
+
+<section class="metric-grid" aria-label="Balance hídrico">
+  <article class="metric featured"><span>Reutilización</span><strong>{{ balance.sustitucion_pct }}%</strong><small>del consumo total</small></article>
+  <article class="metric"><span>Consumo</span><strong>{{ balance.consumo_total_l }} L</strong><small>ciclos cerrados</small></article>
+  <article class="metric"><span>Recuperada</span><strong>{{ balance.agua_recuperada_l }} L</strong><small>captura registrada</small></article>
+  <article class="metric"><span>Ciclos de reúso</span><strong>{{ balance.ciclos_reutilizacion }}</strong><small>validados</small></article>
+</section>
+
+<div class="section-title"><div><p class="eyebrow">Sensores</p><h2>Zonas de cultivo</h2></div><span class="muted">Última lectura registrada</span></div>
+<section class="zone-grid">
+{% for card in cards %}
+  <article class="zone-card">
+    <header><div><span class="zone-index">Z0{{ loop.index }}</span><h3>{{ card.zona.nombre }}</h3><small>{{ card.zona.cultivo }} · {{ card.zona.ubicacion }}</small></div><span class="source-tag {{ card.decision.fuente }}">{{ card.decision.fuente }}</span></header>
+    {% if card.lectura %}
+    <div class="humidity">
+      <div><span>Humedad de suelo</span><strong>{{ card.lectura.humedad_suelo_pct|round(1) }}%</strong></div>
+      <meter min="0" max="100" low="35" high="45" optimum="55" value="{{ card.lectura.humedad_suelo_pct }}"></meter>
+    </div>
+    <dl class="sensor-list">
+      <div><dt>Nivel recuperada</dt><dd>{{ card.lectura.nivel_recuperada_pct|round(1) }}%</dd></div>
+      <div><dt>Turbidez</dt><dd>{{ card.lectura.calidad.turbidez_ntu|round(1) }} NTU</dd></div>
+      <div><dt>Conductividad</dt><dd>{{ card.lectura.calidad.conductividad_us_cm|round|int }} µS/cm</dd></div>
+      <div><dt>Caudal</dt><dd>{{ card.lectura.caudal_l_min|round(1) }} L/min</dd></div>
+    </dl>
+    <footer><span class="quality {{ card.lectura.calidad_lectura }}">{{ card.lectura.calidad_lectura }}</span><small>{{ card.lectura.timestamp.strftime('%d-%m-%Y %H:%M') }}</small></footer>
+    {% else %}<p>No existen lecturas para esta zona.</p>{% endif %}
+  </article>
+{% endfor %}
+</section>
+
+<section class="split-panel">
+  <article class="panel">
+    <div class="section-title compact"><div><p class="eyebrow">Formulario operativo</p><h2>Control manual</h2></div></div>
+    <form action="{{ url_for('manual_irrigation') }}" method="post" class="form-grid">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+      <label>Zona<select name="zona_id" required>{% for card in cards %}<option value="{{ card.zona._id }}">{{ card.zona.nombre }}</option>{% endfor %}</select></label>
+      <label>Acción<select name="accion"><option value="iniciar">Iniciar</option><option value="detener">Detener</option></select></label>
+      <label>Fuente<select name="fuente"><option value="automatica">Automática segura</option><option value="recuperada">Recuperada</option><option value="principal">Principal</option></select></label>
+      <label>Duración (min)<input type="number" name="duracion_min" min="1" max="12" value="5" required></label>
+      <label>Volumen estimado (L)<input type="number" name="volumen_l" min="0" max="500" step="0.1" value="12"></label>
+      <label class="span-2">Motivo<input name="motivo" minlength="5" maxlength="250" value="Verificación operativa programada" required></label>
+      <button class="primary span-2" type="submit">Registrar orden</button>
+    </form>
+  </article>
+
+  <article class="panel">
+    <div class="section-title compact"><div><p class="eyebrow">Atención prioritaria</p><h2>Alertas activas</h2></div><a href="{{ url_for('alerts_page') }}">Ver todas</a></div>
+    <div class="alert-list">
+      {% for alerta in alertas %}
+      <div class="alert-row"><span class="severity {{ alerta.severidad }}"></span><div><strong>{{ alerta.tipo|replace('_',' ')|capitalize }}</strong><small>{{ alerta.mensaje }}</small></div><span>{{ alerta.estado }}</span></div>
+      {% else %}<p class="empty">Sin alertas activas.</p>{% endfor %}
+    </div>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="section-title compact"><div><p class="eyebrow">Trazabilidad</p><h2>Últimos riegos</h2></div><a href="{{ url_for('reports_page') }}">Abrir informe</a></div>
+  <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Zona</th><th>Fuente</th><th>Estado</th><th>Volumen</th></tr></thead><tbody>
+  {% for evento in eventos %}<tr><td>{{ evento.iniciado_en.strftime('%d-%m %H:%M') }}</td><td>{{ evento.zona_id }}</td><td><span class="source-tag {{ evento.fuente }}">{{ evento.fuente }}</span></td><td>{{ evento.estado }}</td><td>{{ evento.volumen_l }} L</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

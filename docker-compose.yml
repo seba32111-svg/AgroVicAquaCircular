@@ -1,0 +1,35 @@
+services:
+  mongodb:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      MONGO_URI: mongodb://mongodb:27017
+      MONGO_DB_NAME: agrovic_aquacircular
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./artifacts:/app/artifacts
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    command: >
+      sh -c "python database/seed.py --if-empty &&
+             gunicorn --bind 0.0.0.0:5000 --workers 1 --threads 4 backend.app:app"
+
+volumes:
+  mongo_data:

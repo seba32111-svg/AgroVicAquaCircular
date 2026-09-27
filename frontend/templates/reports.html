@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Informes | AgroVic{% endblock %}
+{% block content %}
+<header class="page-heading"><div><p class="eyebrow">Medición de resultados</p><h1>Balance hídrico</h1><p>Consumo, captura y sustitución de agua principal.</p></div><a class="primary button-link" href="{{ url_for('reports_csv') }}">Exportar CSV</a></header>
+<section class="metric-grid">
+  <article class="metric featured"><span>Sustitución</span><strong>{{ balance.sustitucion_pct }}%</strong><small>agua principal evitada</small></article>
+  <article class="metric"><span>Consumo total</span><strong>{{ balance.consumo_total_l }} L</strong></article>
+  <article class="metric"><span>Agua reutilizada</span><strong>{{ balance.agua_reutilizada_l }} L</strong></article>
+  <article class="metric"><span>Agua capturada</span><strong>{{ balance.agua_recuperada_l }} L</strong></article>
+</section>
+<section class="panel">
+  <div class="section-title compact"><div><p class="eyebrow">Historial exportable</p><h2>Eventos de riego</h2></div><span class="muted">{{ eventos|length }} registros visibles</span></div>
+  <div class="table-wrap"><table><thead><tr><th>Inicio</th><th>Fuente</th><th>Tipo</th><th>Estado</th><th>Volumen</th><th>Motivo</th></tr></thead><tbody>
+  {% for evento in eventos %}<tr><td>{{ evento.iniciado_en.strftime('%d-%m-%Y %H:%M') }}</td><td><span class="source-tag {{ evento.fuente }}">{{ evento.fuente }}</span></td><td>{{ evento.tipo }}</td><td>{{ evento.estado }}</td><td>{{ evento.volumen_l }} L</td><td>{{ evento.motivo }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

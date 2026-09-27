@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Recuperar acceso | AgroVic{% endblock %}
+{% block content %}
+<section class="center-card">
+  <a class="brand brand-dark" href="{{ url_for('login') }}"><span class="brand-mark">AV</span><span><strong>AgroVic</strong><small>AquaCircular</small></span></a>
+  <p class="eyebrow">Seguridad de cuenta</p>
+  <h1>Recuperar acceso</h1>
+  <p>Ingresa el correo registrado. La respuesta no revela si la cuenta existe.</p>
+  <form method="post" class="stack-form">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <label>Correo electrónico<input type="email" name="email" required></label>
+    <button class="primary" type="submit">Generar solicitud</button>
+  </form>
+  {% if token_demo %}<p class="demo-token">Token de prueba: {{ token_demo }}</p>{% endif %}
+  <a class="text-link" href="{{ url_for('login') }}">Volver al ingreso</a>
+</section>
+{% endblock %}

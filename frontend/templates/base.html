@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Monitoreo y reutilización segura de agua para el piloto AgroVic AquaCircular">
+  <title>{% block title %}AgroVic AquaCircular{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+</head>
+<body class="{% if not usuario_actual %}auth-shell{% endif %}">
+{% if usuario_actual %}
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="{{ url_for('dashboard') }}" aria-label="Inicio AgroVic AquaCircular">
+      <span class="brand-mark">AV</span>
+      <span><strong>AgroVic</strong><small>AquaCircular</small></span>
+    </a>
+    <nav aria-label="Navegación principal">
+      <a href="{{ url_for('dashboard') }}">Panel hídrico</a>
+      <a href="{{ url_for('alerts_page') }}">Alertas</a>
+      <a href="{{ url_for('reports_page') }}">Informes</a>
+      {% if usuario_actual.rol == 'administrador' %}
+      <a href="{{ url_for('admin_panel') }}">Administración</a>
+      {% endif %}
+    </nav>
+    <div class="session-card">
+      <span class="status-dot"></span>
+      <div><strong>{{ usuario_actual.nombre }}</strong><small>{{ usuario_actual.rol|capitalize }}</small></div>
+      <form method="post" action="{{ url_for('logout') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+        <button class="link-button" type="submit">Cerrar sesión</button>
+      </form>
+    </div>
+  </aside>
+  <header class="mobile-header">
+    <button id="menu-toggle" class="icon-button" aria-controls="sidebar" aria-expanded="false">Menú</button>
+    <span>AgroVic AquaCircular</span>
+  </header>
+  <main class="workspace">
+{% else %}
+  <main class="auth-main">
+{% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+      <div class="notice {{ category }}" role="status">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

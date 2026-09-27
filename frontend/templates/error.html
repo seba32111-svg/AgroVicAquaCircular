@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Error {{ code }} | AgroVic{% endblock %}
+{% block content %}
+<section class="center-card">
+  <p class="eyebrow">Código {{ code }}</p>
+  <h1>{{ message }}</h1>
+  <a class="primary button-link" href="{{ url_for('dashboard') if usuario_actual else url_for('login') }}">Volver</a>
+</section>
+{% endblock %}

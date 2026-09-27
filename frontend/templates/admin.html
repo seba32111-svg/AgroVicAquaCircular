@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Administración | AgroVic{% endblock %}
+{% block content %}
+<header class="page-heading"><div><p class="eyebrow">Perfil administrador</p><h1>Configuración del piloto</h1><p>Usuarios, zonas y reglas versionadas.</p></div><span class="live-pill neutral">Acceso restringido</span></header>
+
+<section class="admin-grid">
+  <article class="panel">
+    <div class="step-number">01</div><h2>Cuenta y perfil</h2><p class="muted">Crea un usuario con permisos definidos.</p>
+    <form method="post" action="{{ url_for('add_user') }}" class="stack-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+      <label>Nombre<input name="nombre" minlength="3" required></label>
+      <label>Correo<input type="email" name="email" required></label>
+      <label>Rol<select name="rol"><option value="operador">Operador</option><option value="administrador">Administrador</option></select></label>
+      <label>Contraseña temporal<input type="password" name="password" minlength="10" required></label>
+      <div class="check-row"><label><input type="checkbox" name="activo" checked> Activo</label><label><input type="checkbox" name="control_manual" checked> Control manual</label></div>
+      <button class="primary" type="submit">Crear cuenta</button>
+    </form>
+  </article>
+
+  <article class="panel">
+    <div class="step-number">02</div><h2>Zona de cultivo</h2><p class="muted">Registra ubicación y cultivo supervisado.</p>
+    <form method="post" action="{{ url_for('add_zone') }}" class="stack-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+      <label>Nombre de zona<input name="nombre" minlength="3" required></label>
+      <label>Cultivo<input name="cultivo" minlength="3" required></label>
+      <label>Ubicación<input name="ubicacion" minlength="3" required></label>
+      <button class="primary" type="submit">Incorporar zona</button>
+    </form>
+  </article>
+
+  <article class="panel wide-panel">
+    <div class="step-number">03</div><h2>Regla de riego y reúso</h2><p class="muted">La versión anterior queda inactiva para conservar trazabilidad.</p>
+    <form method="post" action="{{ url_for('add_rule') }}" class="form-grid three">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+      <label>Zona<select name="zona_id">{% for zona in zonas %}<option value="{{ zona._id }}">{{ zona.nombre }}</option>{% endfor %}</select></label>
+      <label>Inicio por humedad (%)<input type="number" name="humedad_inicio_pct" min="0" max="99" value="35" required></label>
+      <label>Detención por humedad (%)<input type="number" name="humedad_detencion_pct" min="1" max="100" value="45" required></label>
+      <label>Nivel recuperada mínimo (%)<input type="number" name="nivel_recuperada_min_pct" min="0" max="100" value="15" required></label>
+      <label>Turbidez máxima (NTU)<input type="number" name="turbidez_max_ntu" min="0" max="100" step="0.1" value="5" required></label>
+      <label>Conductividad máxima (µS/cm)<input type="number" name="conductividad_max_us_cm" min="0" max="5000" value="1200" required></label>
+      <label>Duración máxima (min)<input type="number" name="duracion_max_min" min="1" max="60" value="12" required></label>
+      <label>Prioridad<select name="prioridad_fuente"><option value="recuperada">Recuperada</option><option value="principal">Principal</option></select></label>
+      <label>Horario<input type="time" name="horario_inicio" value="06:00" required></label>
+      <button class="primary span-3" type="submit">Versionar y activar regla</button>
+    </form>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="section-title compact"><div><p class="eyebrow">Estado maestro</p><h2>Resumen de activos</h2></div></div>
+  <div class="summary-columns">
+    <div><h3>Usuarios</h3>{% for usuario in usuarios %}<p><strong>{{ usuario.nombre }}</strong><small>{{ usuario.email }} · {{ usuario.rol }}</small></p>{% endfor %}</div>
+    <div><h3>Zonas</h3>{% for zona in zonas %}<p><strong>{{ zona.nombre }}</strong><small>{{ zona.cultivo }} · {{ zona.ubicacion }}</small></p>{% endfor %}</div>
+    <div><h3>Dispositivos</h3>{% for dispositivo in dispositivos %}<p><strong>{{ dispositivo.nombre }}</strong><small>{{ dispositivo.estado }}</small></p>{% endfor %}</div>
+  </div>
+</section>
+{% endblock %}

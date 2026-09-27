@@ -1,0 +1,12 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+artifacts/
+dist/
+database/exports/
+hardware/local_config.h
+*.pyc
+.DS_Store

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Alertas | AgroVic{% endblock %}
+{% block content %}
+<header class="page-heading"><div><p class="eyebrow">Continuidad y seguridad</p><h1>Centro de alertas</h1><p>Confirmación operativa y cierre controlado de eventos críticos.</p></div></header>
+<section class="panel">
+  <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Severidad</th><th>Tipo</th><th>Detalle</th><th>Estado</th><th>Acción</th></tr></thead><tbody>
+  {% for alerta in alertas %}
+  <tr>
+    <td>{{ alerta.creada_en.strftime('%d-%m-%Y %H:%M') }}</td>
+    <td><span class="severity-label {{ alerta.severidad }}">{{ alerta.severidad }}</span></td>
+    <td>{{ alerta.tipo|replace('_',' ') }}</td><td>{{ alerta.mensaje }}</td><td>{{ alerta.estado }}</td>
+    <td>{% if alerta.estado != 'cerrada' %}<form method="post" action="{{ url_for('update_alert_form', alert_id=alerta._id) }}" class="inline-form"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button name="accion" value="confirmar" type="submit">Confirmar</button><button name="accion" value="cerrar" type="submit">Cerrar</button></form>{% else %}—{% endif %}</td>
+  </tr>
+  {% else %}<tr><td colspan="6">Sin alertas registradas.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

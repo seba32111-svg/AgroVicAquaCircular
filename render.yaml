@@ -1,0 +1,23 @@
+# Blueprint de Render: despliegue gratuito de la aplicación web.
+# La base de datos vive en MongoDB Atlas (M0 gratuito); ver README, sección "Despliegue en Render".
+services:
+  - type: web
+    name: agrovic-aquacircular
+    runtime: python
+    plan: free
+    region: virginia
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 backend.app:app
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.11"
+      - key: MONGO_DB_NAME
+        value: agrovic_aquacircular
+      # Cadena mongodb+srv de Atlas; se ingresa en el panel al crear el Blueprint.
+      - key: MONGO_URI
+        sync: false
+      # Fija para que las sesiones sobrevivan a reinicios y despliegues.
+      - key: SECRET_KEY
+        generateValue: true

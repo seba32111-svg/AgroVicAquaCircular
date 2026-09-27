@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Acceso | AgroVic AquaCircular{% endblock %}
+{% block content %}
+<section class="login-layout">
+  <div class="login-story">
+    <p class="eyebrow">Piloto agrícola · Vicuña, Chile</p>
+    <h1>Cada litro medido.<br><span>Cada decisión segura.</span></h1>
+    <p>Monitoreo de dos zonas, prioridad de agua recuperada y trazabilidad de cada riego desde un solo panel.</p>
+    <div class="water-orbit" aria-hidden="true"><span>H₂O</span></div>
+  </div>
+  <form class="auth-card" method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <span class="brand brand-dark"><span class="brand-mark">AV</span><span><strong>AgroVic</strong><small>AquaCircular</small></span></span>
+    <h2>Ingreso al sistema</h2>
+    <p>Utiliza la cuenta local generada al sembrar la base.</p>
+    <label>Correo electrónico<input type="email" name="email" autocomplete="username" required></label>
+    <label>Contraseña<input type="password" name="password" autocomplete="current-password" required></label>
+    <button class="primary wide" type="submit">Ingresar</button>
+    <a class="text-link" href="{{ url_for('recovery') }}">Recuperar acceso</a>
+    <small class="privacy-note">Proyecto académico · Datos de prueba</small>
+  </form>
+</section>
+{% endblock %}
