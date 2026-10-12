@@ -57,9 +57,9 @@ MUTED = (94, 116, 112)
 RF = [
     ("RF01", "Inicio de sesión y recuperación de acceso mediante solicitud temporal."),
     ("RF02", "Autorización diferenciada por rol, ruta y acción."),
-    ("RF03", "Administración de usuarios y perfiles."),
-    ("RF04", "Administración de dos o más zonas con cultivo, ubicación y estado."),
-    ("RF05", "Administración de fuentes, dispositivos y sensores."),
+    ("RF03", "CRUD de usuarios y operadores: crear, consultar, modificar y desactivar/reactivar registros."),
+    ("RF04", "CRUD de zonas de cultivo: alta, consulta, edición y baja lógica, preservando el historial."),
+    ("RF05", "CRUD de dispositivos ESP32, provisión individual de token y administración de fuentes y sensores."),
     ("RF06", "Recepción de humedad, lluvia, niveles, caudal y calidad cada cinco minutos o menos."),
     ("RF07", "Registro del volumen capturado o recuperado."),
     ("RF08", "Prioridad de agua recuperada solo con nivel y calidad aptos."),
@@ -87,7 +87,7 @@ OBJECTIVES = [
     ("OE1", "Problema, actores, 15 RF y 10 RNF documentados.", "Cumplido"),
     ("OE2", "Arquitectura, diagramas y modelo NoSQL de al menos ocho colecciones.", "Cumplido: 10 colecciones"),
     ("OE3", "Integración ESP32 con lecturas cada cinco minutos o menos.", "Cumplido en firmware y simulador; terreno pendiente"),
-    ("OE4", "Web responsive, dos perfiles, cuatro formularios, panel y control.", "Cumplido"),
+    ("OE4", "Web responsive, dos perfiles, tres CRUD completos, panel y control.", "Cumplido"),
     ("OE5", "Controles de seguridad, recuperación y auditoría.", "Cumplido en prototipo"),
     ("OE6", "500 lecturas, 10 ciclos de reúso e indicadores.", "Cumplido: 500, 10 y 67,01%"),
     ("OE7", "16 casos, al menos 90% aprobados y versión reproducible.", "Determinado por la ejecución adjunta"),
@@ -368,7 +368,7 @@ def generate_report(summary, diagrams):
 
     document.add_heading("Resumen ejecutivo", level=1)
     document.add_paragraph(
-        "AgroVic AquaCircular responde a la falta de una visión consolidada del uso de agua, la pérdida de excedentes recuperables y el riesgo de reutilizar agua sin controles de nivel y calidad. La entrega reconstruye el prototipo como una aplicación funcional, reproducible y trazable. Integra una API Flask, MongoDB, dos perfiles, cuatro formularios operativos, telemetría simulada de ESP32, reglas versionadas, alertas, control manual y reportes."
+        "AgroVic AquaCircular responde a la falta de una visión consolidada del uso de agua, la pérdida de excedentes recuperables y el riesgo de reutilizar agua sin controles de nivel y calidad. La entrega reconstruye el prototipo como una aplicación funcional, reproducible y trazable. Integra una API Flask, MongoDB, dos perfiles, tres CRUD administrativos (usuarios, zonas y dispositivos), telemetría simulada de ESP32, reglas versionadas, alertas, control manual y reportes."
     )
     document.add_paragraph(
         f"La ejecución adjunta registró {summary['executed']} de 16 casos y {summary['passed']} aprobaciones, equivalentes a {summary['pass_rate']}%. La base contiene 500 lecturas y 14 ciclos cerrados: 197 L reutilizados de 294 L consumidos, lo que representa 67,01% de sustitución de agua principal en el conjunto de prueba. Estas cifras describen el dataset académico y no una medición productiva del predio."
@@ -410,7 +410,7 @@ def generate_report(summary, diagrams):
     docx_table(document, ["Objetivo", "Criterio verificable", "Resultado"], OBJECTIVES)
     document.add_heading("2.1 Alcance incluido", level=2)
     document.add_paragraph(
-        "Aplicación web responsive, perfiles Administrador y Operador, API de telemetría, dos zonas, reglas de riego, cuatro formularios, MongoDB exportable, firmware, simulador, pruebas, evidencias, documentación y paquete de entrega."
+        "Aplicación web responsive, perfiles Administrador y Operador, tres CRUD completos de administración, API de telemetría, dos zonas, reglas de riego, MongoDB exportable, firmware, simulador, pruebas, evidencias, documentación y paquete de entrega."
     )
     document.add_heading("2.2 Exclusiones y límites", level=2)
     document.add_paragraph(
@@ -486,7 +486,7 @@ def generate_report(summary, diagrams):
     document.add_heading("7. Implementación", level=1)
     document.add_heading("7.1 Aplicación web y formularios", level=2)
     document.add_paragraph(
-        "El panel presenta sustitución, consumo, captura, ciclos, humedad, niveles, calidad, caudal, fuente autorizada, alertas y eventos. Los formularios operativos son: cuenta y perfil; zona de cultivo; regla de riego y reúso; y control manual/atención de alertas. La validación se repite en el servidor."
+        "El panel presenta sustitución, consumo, captura, ciclos, humedad, niveles, calidad, caudal, fuente autorizada, alertas y eventos. La administración incorpora tres CRUD verificables: usuarios, zonas y dispositivos; además se gestionan reglas de riego y acciones operativas. Cada CRUD permite crear, consultar, modificar y realizar una baja lógica con validaciones en el servidor. Las operaciones conservan la trazabilidad histórica."
     )
     for screenshot in [
         EVIDENCE / "UI01_panel_administrador.png",
@@ -494,6 +494,28 @@ def generate_report(summary, diagrams):
         EVIDENCE / "UI05_panel_operador_movil.png",
     ]:
         add_picture_if(document, screenshot)
+    document.add_heading("7.1.1 Gestión completa de los tres CRUD", level=2)
+    document.add_paragraph(
+        "Los módulos Usuarios y Operadores, Zonas de Cultivo y Dispositivos ESP32 permiten crear, "
+        "consultar, modificar y eliminar mediante desactivación lógica. Esta última operación conserva "
+        "los documentos y su vínculo con auditoría, mediciones y eventos. La interfaz impide que un "
+        "administrador elimine su propia cuenta y rechaza la desactivación de una zona con riego activo. "
+        "Los dispositivos asociados a una zona desactivada también quedan inactivos."
+    )
+    document.add_paragraph(
+        "La evidencia automática ejecuta altas, cambios y bajas reales en la base de demostración "
+        "de GitHub Actions y verifica que el estado persiste. No se utilizan datos de producción; "
+        "el token inicial del ESP32 no se almacena en claro ni aparece en capturas."
+    )
+    for screenshot in [
+        EVIDENCE / "UI06_crud_usuarios_crear_leer.png",
+        EVIDENCE / "UI08_crud_usuarios_desactivado.png",
+        EVIDENCE / "UI09_crud_zonas_crear_leer.png",
+        EVIDENCE / "UI11_crud_zonas_desactivada.png",
+        EVIDENCE / "UI12_crud_dispositivos_crear_leer.png",
+        EVIDENCE / "UI14_crud_dispositivos_desactivado.png",
+    ]:
+        add_picture_if(document, screenshot, 6.1)
     document.add_heading("7.2 API", level=2)
     docx_table(document, ["Método", "Ruta", "Propósito"], API)
     document.add_heading("7.3 Dataset de demostración", level=2)
@@ -668,7 +690,7 @@ def generate_report_pdf(summary, diagrams):
         PdfImage(str(diagrams["data"]), width=17*cm, height=11.1*cm),
         PageBreak(),
         Paragraph("7. Implementación", styles["H1Aqua"]),
-        Paragraph("Los cuatro formularios principales gestionan cuenta, zona, regla y control manual/alerta. El panel es responsive y presenta balance, sensores, fuente autorizada, alertas e historial.", styles["BodyAqua"]),
+        Paragraph("La administración dispone de tres CRUD completos (usuarios, zonas y dispositivos), con bajas lógicas y control por roles. Además, el panel gestiona reglas, balance, sensores, fuentes, alertas e historial.", styles["BodyAqua"]),
     ]
     for screenshot in [EVIDENCE / "UI01_panel_administrador.png", EVIDENCE / "UI02_formularios_administracion.png", EVIDENCE / "UI05_panel_operador_movil.png"]:
         if screenshot.exists():
@@ -679,6 +701,8 @@ def generate_report_pdf(summary, diagrams):
             story += [PdfImage(str(screenshot), width=width, height=height), Spacer(1, .4*cm)]
     story += [
         PageBreak(),
+        Paragraph("7.1 Evidencias de mantenimiento CRUD", styles["H1Aqua"]),
+        Paragraph("Las operaciones de alta, consulta, edición y desactivación se verifican en MongoDB de prueba. Los tres módulos conservan historial y restringen cambios al administrador.", styles["BodyAqua"]),
         Paragraph("8. Pruebas", styles["H1Aqua"]),
         Paragraph(f"Resultado: {summary['passed']} aprobados de {summary['total']} ({summary['pass_rate']}%). Cada EV se construye desde el resultado real de pytest.", styles["BodyAqua"]),
         pdf_table(
@@ -888,12 +912,20 @@ def generate_presentation(summary, diagrams):
     add_text(slide, 7.0, 4.42, 4.8, 1.25, "197 L reutilizados\n÷ 294 L consumidos", 25, LIME, True)
     add_text(slide, 7.0, 5.92, 4.8, .4, "= 67,01% sustitución", 16, (191,229,218), True)
 
-    slide = slide_base(prs, 12, "Implementación de la aplicación", dark=False)
-    picture(slide, EVIDENCE / "UI02_formularios_administracion.png", .55, 1.45, 7.8, 5.45)
-    rect(slide, 8.75, 1.62, 3.8, 4.95, FOREST, True)
-    add_text(slide, 9.12, 1.98, 3.0, .3, "4 FORMULARIOS", 10, LIME, True)
-    bullet_block(slide, 9.05, 2.5, 3.1, ["Cuenta y perfil", "Zona y fuentes", "Regla de riego", "Control / alerta"], True, 15)
-    add_text(slide, 9.12, 5.65, 3.0, .5, "Administrador + Operador", 12, (189,225,215), True)
+    slide = slide_base(prs, 12, "Administración: tres CRUD completos", dark=False)
+    add_text(slide, .75, 1.52, 11.7, .45, "Crear · Consultar · Modificar · Desactivar / Reactivar", 20, FOREST_DARK, True)
+    evidence_cases = [
+        ("CRUD 01 · USUARIOS", "UI06_crud_usuarios_crear_leer.png"),
+        ("CRUD 02 · ZONAS", "UI09_crud_zonas_crear_leer.png"),
+        ("CRUD 03 · DISPOSITIVOS", "UI12_crud_dispositivos_crear_leer.png"),
+    ]
+    for index, (label, filename) in enumerate(evidence_cases):
+        x = .55 + index * 4.24
+        rect(slide, x, 2.25, 3.95, 3.57, (255,255,255), True, (210,225,219))
+        add_text(slide, x+.24, 2.5, 3.45, .35, label, 12, FOREST, True)
+        picture(slide, EVIDENCE / filename, x+.2, 3.1, 3.55, 1.78)
+        add_text(slide, x+.24, 5.3, 3.43, .33, "Prueba real en CI · MongoDB aislado", 9, MUTED)
+    add_text(slide, .8, 6.32, 11.75, .36, "Baja lógica, protección por roles, auditoría y preservación de datos históricos.", 13, FOREST_DARK, True)
 
     slide = slide_base(prs, 13, "Pruebas y evidencias")
     metric_card(slide, .72, 1.72, 2.55, "Aprobados", f"{summary['passed']}/{summary['total']}", "CP01–CP16", True)
@@ -946,7 +978,7 @@ SCRIPT = [
     ("9. Requisitos funcionales", "1:00", "Los quince requisitos se agrupan en acceso, operación e información. Destaco RF08 y RF09, porque definen prioridad condicionada y estado seguro; RF10 registra control manual con motivo; y RF15 mantiene auditoría."),
     ("10. No funcionales", "1:10", "La seguridad incluye bcrypt, roles en servidor, CSRF, validación e idempotencia. El token de dispositivo se guarda como hash. HTTPS es una exigencia del despliegue productivo, no una característica que se simule en localhost."),
     ("11. Datos", "1:00", "La base demostrativa tiene 500 lecturas, catorce ciclos y diez de reúso. Los eventos suman 294 litros; 197 son reutilizados. El indicador calculado es 67,01 por ciento. Es un resultado del dataset, no una proyección anual."),
-    ("12. Aplicación", "1:10", "La interfaz tiene cuatro formularios: cuentas, zonas, reglas y control/alertas. Administrador configura. Operador consulta y actúa solo si está autorizado. La vista móvil conserva las acciones esenciales."),
+    ("12. Aplicación", "1:10", "En Administración se implementaron tres CRUD completos: usuarios, zonas de cultivo y dispositivos. Cada módulo permite registrar, consultar, editar y eliminar mediante baja lógica; se conserva el historial. El operador no tiene acceso a estas acciones y la validación se aplica en el servidor."),
     ("13. Pruebas", "1:30", "Se ejecutan dieciséis casos independientes. Cada caso vuelve a sembrar MongoDB, realiza la acción, verifica la respuesta y guarda un resultado. Las evidencias EV01 a EV16 se construyen desde esa ejecución y no desde resultados escritos previamente."),
     ("14. Conclusiones", "1:10", "El aporte es cerrar la cadena medir, validar, decidir, registrar y explicar. El reúso queda condicionado, la seguridad se aplica en capas y la entrega es reproducible. El paso siguiente es un piloto físico acotado con calibración y registro paralelo."),
     ("15. Cierre", "0:35", "En síntesis, AgroVic AquaCircular demuestra una forma responsable de convertir telemetría en decisiones hídricas. Ahora mostraré el flujo completo: ingreso, panel, perfiles, formularios, alerta, balance, base exportada y evidencias."),
@@ -971,7 +1003,7 @@ def generate_defense_script(summary):
         ("0:00–1:00", "Abrir repositorio público y mostrar README, carpetas y estado de Actions."),
         ("1:00–2:00", "Abrir CREDENCIALES_DEMO.txt local sin leer la contraseña en voz alta."),
         ("2:00–3:30", "Ingresar como Administrador y explicar las cuatro métricas del panel."),
-        ("3:30–5:00", "Abrir Administración y mostrar formularios de usuario, zona y regla."),
+        ("3:30–5:00", "Mostrar en Administración los tres CRUD: alta, consulta, modificar y desactivar registros de prueba, sin intervenir registros originales."),
         ("5:00–6:15", "Abrir otra sesión como Operador y comprobar que Administración responde 403."),
         ("6:15–7:30", "Enviar una lectura con simulador normal; después un escenario de calidad alta y observar la fuente principal/alerta."),
         ("7:30–8:30", "Registrar un riego manual con motivo y mostrar su auditoría."),
@@ -986,7 +1018,7 @@ def generate_defense_script(summary):
         ("¿Qué ocurre sin internet?", "El firmware detiene la bomba localmente. El servidor marca desconexión y genera una alerta cuando vuelve a evaluar."),
         ("¿Cómo se evita reutilizar agua inadecuada?", "La regla exige nivel, calidad válida, turbidez y conductividad dentro de máximo. Si falla, se bloquea recuperada y se usa respaldo."),
         ("¿El 67,01% es ahorro real?", "No es una medición productiva; es el indicador exacto del conjunto de prueba para demostrar cálculo y trazabilidad."),
-        ("¿Qué diferencia a los perfiles?", "Operador supervisa, confirma y ejecuta control autorizado; Administrador gestiona maestros, reglas y cierres críticos."),
+        ("¿Qué diferencia a los perfiles?", "Operador supervisa, confirma y ejecuta control autorizado; Administrador gestiona los CRUD de usuarios, zonas y equipos, reglas y cierres críticos."),
         ("¿Qué mejoraría primero?", "Pilotaje físico en una zona, calibración, validación agronómica y comparación con registro manual."),
     ]
     docx_table(document, ["Pregunta", "Respuesta breve"], questions)

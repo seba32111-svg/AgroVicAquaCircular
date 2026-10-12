@@ -55,6 +55,89 @@ def evidence_html(summary: dict) -> str:
     </style></head><body>{''.join(cards)}</body></html>"""
 
 
+def capture_crud_evidence(page):
+    """Capturas reales de altas, consultas, ediciones y bajas en la base de demostracion."""
+    base_url = os.getenv("BASE_URL", "http://127.0.0.1:5000")
+    page.goto(f"{base_url}/admin")
+
+    def record(section_title, text):
+        panel = page.locator("section.panel").filter(
+            has=page.get_by_role("heading", name=section_title)
+        )
+        result = panel.locator(".crud-item").filter(has_text=text)
+        if result.count() != 1:
+            raise RuntimeError(f"Registro de prueba no encontrado: {text}")
+        return result
+
+    def screenshot(item, name):
+        item.screenshot(path=EVIDENCE / name)
+
+    def deactivate(item):
+        page.once("dialog", lambda dialog: dialog.accept())
+        item.get_by_role("button", name="Eliminar / desactivar").click()
+
+    user_form = page.locator('form[action="/admin/usuarios"]')
+    user_form.locator('input[name="nombre"]').fill("Operador Evidencia CI")
+    user_form.locator('input[name="email"]').fill("evidencia.crud@agrovic.demo")
+    user_form.locator('input[name="password"]').fill("EvidenciaAq9!2026")
+    user_form.get_by_role("button", name="Crear cuenta").click()
+    name = "Gestionar usuarios y operadores"
+    item = record(name, "evidencia.crud@agrovic.demo")
+    screenshot(item, "UI06_crud_usuarios_crear_leer.png")
+    item.locator("summary").click()
+    item.locator('input[name="nombre"]').fill("Operador Evidencia Modificado")
+    screenshot(item, "UI07_crud_usuarios_edicion.png")
+    item.get_by_role("button", name="Guardar usuario").click()
+    item = record(name, "evidencia.crud@agrovic.demo")
+    assert "Operador Evidencia Modificado" in item.inner_text()
+    deactivate(item)
+    item = record(name, "evidencia.crud@agrovic.demo")
+    assert "Inactivo" in item.inner_text()
+    screenshot(item, "UI08_crud_usuarios_desactivado.png")
+
+    zone_form = page.locator('form[action="/admin/zonas"]')
+    zone_form.locator('input[name="nombre"]').fill("Sector Evidencia CI")
+    zone_form.locator('input[name="cultivo"]').fill("Hortalizas")
+    zone_form.locator('input[name="ubicacion"]').fill("Sector experimental")
+    zone_form.get_by_role("button", name="Incorporar zona").click()
+    name = "Gestionar zonas de cultivo"
+    item = record(name, "Sector Evidencia CI")
+    screenshot(item, "UI09_crud_zonas_crear_leer.png")
+    item.locator("summary").click()
+    item.locator('input[name="cultivo"]').fill("Cultivo experimental")
+    screenshot(item, "UI10_crud_zonas_edicion.png")
+    item.get_by_role("button", name="Guardar zona").click()
+    item = record(name, "Sector Evidencia CI")
+    assert "Cultivo experimental" in item.inner_text()
+    deactivate(item)
+    item = record(name, "Sector Evidencia CI")
+    assert "Inactiva" in item.inner_text()
+    screenshot(item, "UI11_crud_zonas_desactivada.png")
+
+    device_form = page.locator('form[action="/admin/dispositivos"]')
+    device_form.locator('input[name="nombre"]').fill("ESP32 Evidencia CI")
+    device_form.locator('input[name="modelo"]').fill("ESP32-S3")
+    device_form.locator('select[name="zona_id"]').select_option(index=0)
+    device_form.locator('input[name="intervalo_segundos"]').fill("300")
+    device_form.get_by_role("button", name="Agregar dispositivo").click()
+    assert page.get_by_role("heading", name="Token de provisión").is_visible()
+    # La credencial de aprovisionamiento no se captura ni se publica.
+    page.get_by_role("link", name="Volver a Administración").click()
+    name = "Gestionar dispositivos ESP32"
+    item = record(name, "ESP32 Evidencia CI")
+    screenshot(item, "UI12_crud_dispositivos_crear_leer.png")
+    item.locator("summary").click()
+    item.locator('input[name="nombre"]').fill("ESP32 Evidencia Modificado")
+    item.locator('input[name="intervalo_segundos"]').fill("180")
+    screenshot(item, "UI13_crud_dispositivos_edicion.png")
+    item.get_by_role("button", name="Guardar dispositivo").click()
+    item = record(name, "ESP32 Evidencia Modificado")
+    deactivate(item)
+    item = record(name, "ESP32 Evidencia Modificado")
+    assert "Inactivo" in item.inner_text()
+    screenshot(item, "UI14_crud_dispositivos_desactivado.png")
+
+
 def main():
     base_url = os.getenv("BASE_URL", "http://127.0.0.1:5000")
     runtime = json.loads((ARTIFACTS / "runtime_credentials.json").read_text(encoding="utf-8"))
@@ -80,6 +163,7 @@ def main():
         page.screenshot(path=EVIDENCE / "UI03_centro_alertas.png", full_page=True)
         page.goto(f"{base_url}/reportes")
         page.screenshot(path=EVIDENCE / "UI04_balance_hidrico.png", full_page=True)
+        capture_crud_evidence(page)
         admin.close()
 
         operator = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=1)
@@ -101,7 +185,7 @@ def main():
         cards.close()
         browser.close()
 
-    print(f"Evidencias capturadas: {len(summary['results'])} casos y 5 vistas de interfaz.")
+    print(f"Evidencias capturadas: {len(summary['results'])} casos y 5 vistas de interfaz y 9 capturas CRUD.")
 
 
 if __name__ == "__main__":

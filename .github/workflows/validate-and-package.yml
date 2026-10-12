@@ -2,7 +2,7 @@ name: Validar y empaquetar entrega
 
 on:
   push:
-    branches: [main, feature/crud-administracion]
+    branches: [main, feature/evidencias-crud]
   workflow_dispatch:
 
 permissions:
@@ -80,6 +80,14 @@ jobs:
           python -m backend.run > artifacts/server.log 2>&1 &
           echo $! > artifacts/server.pid
           python scripts/capture_evidence.py
+          python - <<'PY'
+          from pathlib import Path
+          expected = [f"UI{i:02d}_" for i in range(6, 15)]
+          screenshots = list(Path("artifacts/evidence").glob("UI*.png"))
+          for prefix in expected:
+              assert sum(p.name.startswith(prefix) for p in screenshots) == 1, prefix
+          print("Evidencias CRUD completas: nueve capturas validadas.")
+          PY
 
       - name: Generar informe, presentación, guion y ZIP
         run: python scripts/generate_deliverables.py
