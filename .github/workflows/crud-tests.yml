@@ -2,7 +2,7 @@ name: Validación CRUD administrativo
 
 on:
   push:
-    branches: [feature/crud-administracion]
+    branches: [main, feature/crud-administracion]
   pull_request:
     branches: [main]
   workflow_dispatch:
