@@ -2,7 +2,7 @@ name: Validar y empaquetar entrega
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/crud-administracion]
   workflow_dispatch:
 
 permissions:
