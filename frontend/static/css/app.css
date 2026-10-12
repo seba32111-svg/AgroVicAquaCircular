@@ -242,3 +242,5 @@ td:nth-child(4), td:nth-child(6) { white-space: normal; }
 .crud-delete {padding:10px 14px;border:1px solid #e3b0b0;border-radius:9px;color:#913030;background:#fff2f2;cursor:pointer;font-weight:800;font-size:.8rem}
 .crud-delete:hover {background:#ffe1e1}
 @media(max-width:560px) {.crud-form .span-2,.crud-form .span-3 {grid-column:span 1}}
+
+.provision-token {white-space:pre-wrap;overflow-wrap:anywhere;padding:18px;background:#edf7f3;border-radius:12px;user-select:all}
