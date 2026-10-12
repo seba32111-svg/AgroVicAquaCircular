@@ -550,6 +550,7 @@ def create_app(test_config: dict | None = None) -> Flask:
             "admin.html",
             usuarios=list(db().usuarios.find().sort("nombre", ASCENDING)),
             zonas=list(db().zonas_cultivo.find().sort("nombre", ASCENDING)),
+            zonas_activas=list(db().zonas_cultivo.find({"activa": True}).sort("nombre", ASCENDING)),
             dispositivos=list(db().dispositivos.find().sort("nombre", ASCENDING)),
             reglas=list(db().reglas_riego.find({"activa": True})),
         )
@@ -1002,6 +1003,8 @@ def create_app(test_config: dict | None = None) -> Flask:
         audit("watchdog_ejecutado", "exitoso", detalle=result)
         return jsonify(result)
 
+    from backend.admin_crud import crud
+    app.register_blueprint(crud)
     return app
 
 

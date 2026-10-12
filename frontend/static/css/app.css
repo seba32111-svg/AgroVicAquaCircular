@@ -226,3 +226,21 @@ td:nth-child(4), td:nth-child(6) { white-space: normal; }
   .workspace { width: 100%; margin: 0; padding: 20px; }
   .panel, .zone-card, .metric { box-shadow: none; break-inside: avoid; }
 }
+
+/* Mantenimiento administrativo */
+.crud-item {padding:16px 0;border-top:1px solid var(--line)}
+.crud-heading {display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.crud-heading strong,.crud-heading small {display:block}
+.crud-heading small {color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+.crud-status {font-size:.72rem;font-weight:750;background:#edf5f1;color:#216b5e;padding:6px 10px;border-radius:50px}
+.crud-actions {display:flex;gap:12px;flex-wrap:wrap;align-items:start;margin-top:12px}
+.crud-actions details {flex:1 1 300px}
+.crud-actions details[open] {flex-basis:100%}
+.crud-actions summary {display:inline-block;cursor:pointer;padding:9px 15px;border-radius:9px;background:#e5f5ee;color:#176d64;font-weight:800;font-size:.8rem}
+.crud-actions form:not(.crud-form) {margin:0}
+.crud-form {margin-top:14px;padding:16px;background:#f6faf8;border-radius:12px}
+.crud-delete {padding:10px 14px;border:1px solid #e3b0b0;border-radius:9px;color:#913030;background:#fff2f2;cursor:pointer;font-weight:800;font-size:.8rem}
+.crud-delete:hover {background:#ffe1e1}
+@media(max-width:560px) {.crud-form .span-2,.crud-form .span-3 {grid-column:span 1}}
+
+.provision-token {white-space:pre-wrap;overflow-wrap:anywhere;padding:18px;background:#edf7f3;border-radius:12px;user-select:all}

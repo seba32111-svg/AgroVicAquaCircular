@@ -9,3 +9,9 @@ if (toggle && sidebar) {
 document.querySelectorAll(".notice").forEach((notice) => {
   window.setTimeout(() => notice.classList.add("notice-fade"), 5000);
 });
+
+document.querySelectorAll("form[data-confirm]").forEach((form) => {
+  form.addEventListener("submit", (event) => {
+    if (!window.confirm(form.dataset.confirm)) event.preventDefault();
+  });
+});

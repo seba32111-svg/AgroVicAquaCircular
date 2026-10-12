@@ -2,7 +2,7 @@ name: Validar y empaquetar entrega
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/crud-administracion]
   workflow_dispatch:
 
 permissions:
@@ -66,7 +66,7 @@ jobs:
         env:
           MONGO_URI: mongodb://localhost:27017
           MONGO_DB_NAME: agrovic_aquacircular_ci
-        run: python database/seed.py --database agrovic_aquacircular_ci --export-dir database/exports --artifact-dir artifacts
+        run: python -m database.seed --database agrovic_aquacircular_ci --export-dir database/exports --artifact-dir artifacts
 
       - name: Instalar navegador de evidencia
         run: python -m playwright install --with-deps chromium

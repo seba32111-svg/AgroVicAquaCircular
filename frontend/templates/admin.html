@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Administración | AgroVic{% endblock %}
 {% block content %}
-<header class="page-heading"><div><p class="eyebrow">Perfil administrador</p><h1>Configuración del piloto</h1><p>Usuarios, zonas y reglas versionadas.</p></div><span class="live-pill neutral">Acceso restringido</span></header>
+<header class="page-heading"><div><p class="eyebrow">Perfil administrador</p><h1>Configuración del piloto</h1><p>Usuarios, zonas, dispositivos y reglas versionadas.</p></div><span class="live-pill neutral">Acceso restringido</span></header>
 
 <section class="admin-grid">
   <article class="panel">
@@ -32,7 +32,7 @@
     <div class="step-number">03</div><h2>Regla de riego y reúso</h2><p class="muted">La versión anterior queda inactiva para conservar trazabilidad.</p>
     <form method="post" action="{{ url_for('add_rule') }}" class="form-grid three">
       <input type="hidden" name="_csrf" value="{{ csrf_token }}">
-      <label>Zona<select name="zona_id">{% for zona in zonas %}<option value="{{ zona._id }}">{{ zona.nombre }}</option>{% endfor %}</select></label>
+      <label>Zona<select name="zona_id">{% for zona in zonas_activas %}<option value="{{ zona._id }}">{{ zona.nombre }}</option>{% endfor %}</select></label>
       <label>Inicio por humedad (%)<input type="number" name="humedad_inicio_pct" min="0" max="99" value="35" required></label>
       <label>Detención por humedad (%)<input type="number" name="humedad_detencion_pct" min="1" max="100" value="45" required></label>
       <label>Nivel recuperada mínimo (%)<input type="number" name="nivel_recuperada_min_pct" min="0" max="100" value="15" required></label>
@@ -46,12 +46,85 @@
   </article>
 </section>
 
+
 <section class="panel">
-  <div class="section-title compact"><div><p class="eyebrow">Estado maestro</p><h2>Resumen de activos</h2></div></div>
-  <div class="summary-columns">
-    <div><h3>Usuarios</h3>{% for usuario in usuarios %}<p><strong>{{ usuario.nombre }}</strong><small>{{ usuario.email }} · {{ usuario.rol }}</small></p>{% endfor %}</div>
-    <div><h3>Zonas</h3>{% for zona in zonas %}<p><strong>{{ zona.nombre }}</strong><small>{{ zona.cultivo }} · {{ zona.ubicacion }}</small></p>{% endfor %}</div>
-    <div><h3>Dispositivos</h3>{% for dispositivo in dispositivos %}<p><strong>{{ dispositivo.nombre }}</strong><small>{{ dispositivo.estado }}</small></p>{% endfor %}</div>
-  </div>
+  <div class="section-title compact"><div><p class="eyebrow">Alta de equipos</p><h2>Registrar dispositivo ESP32</h2></div></div>
+  <form method="post" action="{{ url_for('crud.add_device') }}" class="form-grid three">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <label>Nombre<input name="nombre" minlength="3" maxlength="100" required></label>
+    <label>Modelo<input name="modelo" value="ESP32" minlength="2" maxlength="80" required></label>
+    <label>Zona activa<select name="zona_id" required>{% for zona in zonas_activas %}<option value="{{ zona._id }}">{{ zona.nombre }}</option>{% endfor %}</select></label>
+    <label>Intervalo (segundos)<input name="intervalo_segundos" type="number" min="60" max="3600" value="300" required></label>
+    <button class="primary span-3" type="submit">Agregar dispositivo</button>
+  </form>
 </section>
+
+<section class="panel">
+  <div class="section-title compact"><div><p class="eyebrow">CRUD 01</p><h2>Gestionar usuarios y operadores</h2></div></div>
+  {% for usuario in usuarios %}
+  <div class="crud-item">
+    <div class="crud-heading"><div><strong>{{ usuario.nombre }}</strong><small>{{ usuario.email }} · {{ usuario.rol }}</small></div><span class="crud-status">{{ 'Activo' if usuario.activo else 'Inactivo' }}</span></div>
+    <div class="crud-actions">
+      <details><summary>Modificar</summary>
+        <form method="post" action="{{ url_for('crud.edit_user', user_id=usuario._id) }}" class="form-grid three crud-form">
+          <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+          <label>Nombre<input name="nombre" value="{{ usuario.nombre }}" minlength="3" maxlength="100" required></label>
+          <label>Correo<input type="email" name="email" value="{{ usuario.email }}" required></label>
+          <label>Rol<select name="rol"><option value="operador" {% if usuario.rol == 'operador' %}selected{% endif %}>Operador</option><option value="administrador" {% if usuario.rol == 'administrador' %}selected{% endif %}>Administrador</option></select></label>
+          <label>Contraseña nueva (opcional)<input type="password" name="password" autocomplete="new-password"></label>
+          <div class="check-row span-2"><label><input type="checkbox" name="activo" {% if usuario.activo %}checked{% endif %}> Activo</label><label><input type="checkbox" name="control_manual" {% if usuario.control_manual_autorizado %}checked{% endif %}> Control manual</label></div>
+          <button class="primary span-3" type="submit">Guardar usuario</button>
+        </form>
+      </details>
+      {% if usuario.activo %}<form method="post" action="{{ url_for('crud.delete_user', user_id=usuario._id) }}" data-confirm="¿Desactivar este usuario? Su historial permanecerá guardado."><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button class="crud-delete" type="submit">Eliminar / desactivar</button></form>{% endif %}
+    </div>
+  </div>
+  {% else %}<p>No hay usuarios registrados.</p>{% endfor %}
+</section>
+
+<section class="panel">
+  <div class="section-title compact"><div><p class="eyebrow">CRUD 02</p><h2>Gestionar zonas de cultivo</h2></div></div>
+  {% for zona in zonas %}
+  <div class="crud-item">
+    <div class="crud-heading"><div><strong>{{ zona.nombre }}</strong><small>{{ zona.cultivo }} · {{ zona.ubicacion }}</small></div><span class="crud-status">{{ 'Activa' if zona.activa else 'Inactiva' }}</span></div>
+    <div class="crud-actions">
+      <details><summary>Modificar</summary>
+        <form method="post" action="{{ url_for('crud.edit_zone', zone_id=zona._id) }}" class="form-grid three crud-form">
+          <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+          <label>Nombre<input name="nombre" value="{{ zona.nombre }}" minlength="3" maxlength="80" required></label>
+          <label>Cultivo<input name="cultivo" value="{{ zona.cultivo }}" minlength="3" maxlength="80" required></label>
+          <label>Ubicación<input name="ubicacion" value="{{ zona.ubicacion }}" minlength="3" maxlength="120" required></label>
+          <div class="check-row span-3"><label><input type="checkbox" name="activa" {% if zona.activa %}checked{% endif %}> Zona activa</label></div>
+          <button class="primary span-3" type="submit">Guardar zona</button>
+        </form>
+      </details>
+      {% if zona.activa %}<form method="post" action="{{ url_for('crud.delete_zone', zone_id=zona._id) }}" data-confirm="¿Desactivar esta zona y sus dispositivos? Las lecturas se conservan."><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button class="crud-delete" type="submit">Eliminar / desactivar</button></form>{% endif %}
+    </div>
+  </div>
+  {% else %}<p>No hay zonas registradas.</p>{% endfor %}
+</section>
+
+<section class="panel">
+  <div class="section-title compact"><div><p class="eyebrow">CRUD 03</p><h2>Gestionar dispositivos ESP32</h2></div></div>
+  {% for dispositivo in dispositivos %}
+  <div class="crud-item">
+    <div class="crud-heading"><div><strong>{{ dispositivo.nombre }}</strong><small>{{ dispositivo.modelo }} · {{ dispositivo.estado }}</small></div><span class="crud-status">{{ 'Activo' if dispositivo.activo else 'Inactivo' }}</span></div>
+    <div class="crud-actions">
+      <details><summary>Modificar</summary>
+        <form method="post" action="{{ url_for('crud.edit_device', device_id=dispositivo._id) }}" class="form-grid three crud-form">
+          <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+          <label>Nombre<input name="nombre" value="{{ dispositivo.nombre }}" minlength="3" maxlength="100" required></label>
+          <label>Modelo<input name="modelo" value="{{ dispositivo.modelo }}" minlength="2" maxlength="80" required></label>
+          <label>Zona<select name="zona_id" required>{% for zona in zonas %}<option value="{{ zona._id }}" {% if dispositivo.zona_id == zona._id %}selected{% endif %}>{{ zona.nombre }}{% if not zona.activa %} (inactiva){% endif %}</option>{% endfor %}</select></label>
+          <label>Intervalo (segundos)<input name="intervalo_segundos" value="{{ dispositivo.intervalo_segundos }}" type="number" min="60" max="3600" required></label>
+          <div class="check-row span-2"><label><input type="checkbox" name="activo" {% if dispositivo.activo %}checked{% endif %}> Equipo activo</label></div>
+          <button class="primary span-3" type="submit">Guardar dispositivo</button>
+        </form>
+      </details>
+      {% if dispositivo.activo %}<form method="post" action="{{ url_for('crud.delete_device', device_id=dispositivo._id) }}" data-confirm="¿Desactivar el dispositivo? El historial se conserva."><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button class="crud-delete" type="submit">Eliminar / desactivar</button></form>{% endif %}
+    </div>
+  </div>
+  {% else %}<p>No hay dispositivos registrados.</p>{% endfor %}
+</section>
+<p class="muted">La eliminación es lógica: se desactiva el registro y se preserva su historial. Utiliza Modificar para reactivarlo.</p>
 {% endblock %}

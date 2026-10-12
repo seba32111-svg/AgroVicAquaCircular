@@ -28,7 +28,7 @@ services:
       mongodb:
         condition: service_healthy
     command: >
-      sh -c "python database/seed.py --if-empty &&
+      sh -c "python -m database.seed --if-empty &&
              gunicorn --bind 0.0.0.0:5000 --workers 1 --threads 4 backend.app:app"
 
 volumes:

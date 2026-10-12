@@ -1,0 +1,48 @@
+name: Validación CRUD administrativo
+
+on:
+  push:
+    branches: [main, feature/crud-administracion]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas-crud:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mongodb:
+        image: mongo:7
+        ports: ["27017:27017"]
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1}).ok'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - name: Obtener codigo
+        uses: actions/checkout@v4
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: pip install -r backend/requirements.txt
+      - name: Validar sintaxis de la aplicacion
+        run: python -m compileall -q backend tests
+      - name: Ejecutar todas las pruebas contra MongoDB de prueba
+        env:
+          MONGO_URI: mongodb://localhost:27017
+          MONGO_DB_NAME: agrovic_aquacircular_test
+        run: python -m pytest -q tests --junitxml=crud-test-results.xml
+      - name: Publicar resultados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pruebas-crud
+          path: crud-test-results.xml
+          retention-days: 14
