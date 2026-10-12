@@ -3,6 +3,7 @@ import hashlib
 import secrets
 
 import bcrypt
+from bson.errors import InvalidId
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from pymongo.errors import DuplicateKeyError
 
@@ -16,7 +17,7 @@ crud = Blueprint("crud", __name__, url_prefix="/admin")
 def obj_id(value):
     try:
         return as_oid(value)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, InvalidId):
         abort(404)
 
 
